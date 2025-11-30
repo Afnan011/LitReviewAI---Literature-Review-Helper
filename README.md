@@ -10,56 +10,71 @@
 - **🎯 Smart Selection**: AI-powered selection of the top 5 most relevant papers
 - **📊 Key Findings Extraction**: Automated extraction of methodology, findings, and relevance
 - **✍️ Professional Synthesis**: Generates well-structured literature reviews with proper citations
+- **🔄 Iterative Refinement**: **[NEW]** Self-correcting loop that improves the review based on AI critique
 - **⭐ Quality Evaluation**: Built-in evaluation system that scores the generated review
+- **💬 Interactive Web Chat**: Clean, chat-based interface using `adk web`
 
 ## 🏗️ Architecture
 
-LitReview AI uses a **multi-agent architecture** with 5 specialized AI agents:
+LitReview AI uses a **multi-agent architecture** with a deterministic sequential workflow and an iterative refinement loop.
 
-```
-┌─────────────────────────────────────────┐
-│        LitReview AI Coordinator         │
-│     (Orchestrates the workflow)         │
-└──────────────┬──────────────────────────┘
-               │
-    ┌──────────┼──────────┬──────────┬──────────┐
-    │          │          │          │          │
-┌───▼───┐  ┌──▼──┐  ┌────▼───┐  ┌──▼──┐  ┌────▼────┐
-│Search │  │Select│  │Extract │  │Synth│  │Evaluate │
-│Agent  │  │Agent │  │ Agent  │  │Agent│  │ Agent   │
-└───────┘  └─────┘  └────────┘  └─────┘  └─────────┘
-   📚         🎯         📊         ✍️         ⭐
+```mermaid
+graph TD
+    User[User] -->|Query| Root[Root Agent (LitReviewAI)]
+    Root -->|Calls Tool| Tool[execute_literature_review Tool]
+    
+    subgraph "Internal Encapsulated Workflow (Threaded)"
+        Tool --> Search[Search Agent]
+        Search -->|Raw Papers| Select[Selection Agent]
+        Select -->|Top 5 Papers| Extract[Extraction Agent]
+        Extract -->|Enriched Data| LoopStart((Start Loop))
+        
+        subgraph "Iterative Refinement Loop (Max 2)"
+            LoopStart --> Synth[Synthesis Agent]
+            Synth -->|Draft Review| Eval[Evaluation Agent]
+            Eval -->|Critique & Score| Synth
+        end
+        
+        Eval -->|Final Review| Result[Final Output]
+    end
+    
+    Result -->|Text| Tool
+    Tool -->|Response| Root
+    Root -->|Chat Message| User
+
+    style Root fill:#f9f,stroke:#333,stroke-width:2px
+    style Tool fill:#bbf,stroke:#333,stroke-width:2px
+    style Search fill:#dfd,stroke:#333,stroke-width:1px
+    style Select fill:#dfd,stroke:#333,stroke-width:1px
+    style Extract fill:#dfd,stroke:#333,stroke-width:1px
+    style Synth fill:#ffd,stroke:#333,stroke-width:1px
+    style Eval fill:#ffd,stroke:#333,stroke-width:1px
 ```
 
 ### Agent Details
 
 1. **SearchAgent** 📚
-   - Searches ArXiv database for academic papers
-   - Performs web searches for additional sources
+   - Searches ArXiv database and Web (DuckDuckGo)
    - Returns up to 40 papers (20 from each source)
 
 2. **SelectionAgent** 🎯
    - Analyzes all found papers
-   - Ranks by relevance and quality
-   - Selects top 5 papers
+   - Selects top 5 papers based on relevance and year
    - Sorts by publication year (newest first)
 
 3. **ExtractionAgent** 📊
-   - Extracts key findings from each paper
-   - Identifies methodology used
-   - Assesses relevance to the query
+   - Extracts key findings, methodology, and relevance for each paper
 
 4. **SynthesisAgent** ✍️
    - Writes a professional literature review
    - Creates 5 paragraphs (one per paper)
    - Adds proper citations [1], [2], etc.
-   - Includes a references section
+   - **Self-Correction**: Improves draft based on feedback from EvaluationAgent
 
 5. **EvaluationAgent** ⭐
    - Reviews the generated literature review
-   - Checks format compliance
-   - Verifies citation accuracy
-   - Provides quality score (1-10) and feedback
+   - Checks format compliance and citation accuracy
+   - Provides quality score (1-10) and specific feedback for improvement
 
 ## 🚀 Installation
 
@@ -90,81 +105,37 @@ LitReview AI uses a **multi-agent architecture** with 5 specialized AI agents:
 
 ## 💻 Usage
 
-### Interactive CLI Mode
+### Web Chat Interface (Recommended)
 
-Run the interactive command-line interface:
-
-```bash
-python litreview_ai.py
-```
-
-The CLI provides a beautiful menu-driven interface:
-
-- **Option 1**: Start a new literature review
-- **Option 2**: View information about LitReview AI
-- **Option 3**: Exit the application
-
-### Features of Interactive Mode
-
-- 🎨 **Colored output** for better readability
-- 📝 **Auto-save** - Reviews are automatically saved with timestamps
-- ⏳ **Progress indicators** for each step
-- 🖥️ **User-friendly** menu system
-
-### Example Session
-
-```
-╔═══════════════════════════════════════════════════════════════╗
-║                                                               ║
-║               🤖 LitReview AI - v1.0                          ║
-║                                                               ║
-║        Advanced AI-Powered Literature Review Assistant        ║
-║        Powered by Google ADK Multi-Agent System               ║
-║                                                               ║
-╚═══════════════════════════════════════════════════════════════╝
-
-✅ API key loaded
-⏳ Initializing LitReview AI agents...
-✅ All agents initialized successfully!
-
-┌─────────────────────────────────────────────────────────┐
-│                     MAIN MENU                           │
-├─────────────────────────────────────────────────────────┤
-│  1. 📚 Start New Literature Review                     │
-│  2. ℹ️  About LitReview AI                             │
-│  3. 🚪 Exit                                             │
-└─────────────────────────────────────────────────────────┘
-
-Enter your choice (1-3): 1
-
-Enter your research topic: Multi-Agent Systems in AI
-
-🔍 Processing Query
-==================
-Query: Multi-Agent Systems in AI
-
-⏳ Starting literature review process...
-...
-```
-
-### Jupyter Notebook Mode
-
-For Kaggle or local Jupyter environments, use:
+Run the ADK Web server to interact with the agent in a clean chat interface:
 
 ```bash
-jupyter notebook literature-review-updated.ipynb
+./venv/Scripts/adk web --port 8080
+```
+
+Then open your browser at `http://localhost:8080` and type your request:
+> "Write a literature review on deep learning"
+
+### CLI Mode
+
+You can also run the agent directly via CLI (for debugging):
+
+```bash
+./venv/Scripts/adk run litreview_agent "Write a literature review on deep learning"
 ```
 
 ## 📁 Project Structure
 
 ```
 Literature Review Helper/
-├── litreview_ai.py              # Interactive CLI application
+├── litreview_agent/             # ADK Agent Package
+│   ├── __init__.py              # Package marker
+│   └── agent.py                 # Main agent definition & logic
+├── litreview_ai.py              # Legacy CLI application
 ├── literature-review-updated.ipynb  # Jupyter notebook version
-├── .env                         # API keys (create this)
+├── .env                         # API keys
 ├── requirements.txt             # Python dependencies
-├── README.md                    # This file
-└── review_*.txt                 # Generated reviews (auto-created)
+└── README.md                    # This file
 ```
 
 ## 📦 Dependencies
@@ -175,41 +146,15 @@ Literature Review Helper/
 - `duckduckgo-search` - Web search capability
 - `python-dotenv` - Environment variable management
 
-Install all dependencies:
-```bash
-pip install google-generativeai arxiv duckduckgo-search ddgs python-dotenv google-adk
-```
-
-## 🎯 Use Cases
-
-- **Academic Research**: Quickly get an overview of research in a specific field
-- **Literature Surveys**: Generate comprehensive literature reviews
-- **Research Planning**: Identify key papers and research directions
-- **Proposal Writing**: Gather background information for research proposals
-
 ## 🔧 Configuration
 
 ### Model Selection
 
-By default, LitReview AI uses `gemini-2.5-flash-lite`. You can change this in `litreview_ai.py`:
-
-```python
-model = Gemini(model="gemini-2.5-flash-lite", retry_options=retry_config)
-```
-
-Available models:
-- `gemini-2.5-flash-lite` (fastest, default)
-- `gemini-2.5-flash` (balanced)
-- `gemini-2.0-pro` (most powerful)
+By default, LitReview AI uses `gemini-2.5-flash-lite`. You can change this in `litreview_agent/agent.py`.
 
 ### Search Parameters
 
-Adjust search volume in the `search_papers_tool` function:
-
-```python
-search = arxiv.Search(query=query, max_results=20, ...)  # Change max_results
-results = list(ddgs.text(keywords, max_results=20))      # Change max_results
-```
+Adjust search volume in the `search_papers_tool` function in `litreview_agent/agent.py`.
 
 ## 🤝 Contributing
 
@@ -224,10 +169,6 @@ MIT License - Feel free to use and modify
 - Built with Google's Agent Development Kit (ADK)
 - Created for Google's 5-Day AI Agent Intensive Course
 - Powered by Gemini 2.5 Flash
-
-## 📧 Contact
-
-For questions or feedback about this project, please open an issue on GitHub.
 
 ---
 
