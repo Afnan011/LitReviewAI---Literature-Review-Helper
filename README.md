@@ -10,19 +10,6 @@
 - **🎯 Smart Selection**: AI-powered selection of the top 5 most relevant papers
 - **📊 Key Findings Extraction**: Automated extraction of methodology, findings, and relevance
 - **✍️ Professional Synthesis**: Generates well-structured literature reviews with proper citations
-- **🔄 Iterative Refinement**: **[NEW]** Self-correcting loop that improves the review based on AI critique
-- **⭐ Quality Evaluation**: Built-in evaluation system that scores the generated review
-- **💬 Interactive Web Chat**: Clean, chat-based interface using `adk web`
-
-## 🏗️ Architecture
-
-LitReview AI uses a **multi-agent architecture** with a deterministic sequential workflow and an iterative refinement loop.
-
-![Architecture Diagram](architecture_diagram.png)
-
-
-### Agent Details
-
 1. **SearchAgent** 📚
    - Searches ArXiv database and Web (DuckDuckGo)
    - Returns up to 40 papers (20 from each source)

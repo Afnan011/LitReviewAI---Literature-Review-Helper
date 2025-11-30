@@ -1,78 +1,70 @@
-# LitReview AI: Advanced Multi-Agent Literature Review Assistant
+# LitReview AI: Your Intelligent Research Assistant 📚🤖
 
 > **Capstone Project for Google's 5-Day AI Agent Intensive Course**
 
-## 1. Project Overview
+### Problem Statement
+Conducting a comprehensive literature review is one of the most time-consuming and daunting tasks for researchers and students. It involves:
+1.  **Endless Searching**: Sifting through hundreds of search results across multiple databases (ArXiv, Google Scholar, etc.).
+2.  **Information Overload**: Reading dozens of abstracts to find the few that are actually relevant.
+3.  **Manual Synthesis**: Extracting key findings and methodology from each paper and weaving them into a coherent narrative.
+4.  **Citation Management**: Ensuring every claim is backed by a correct citation.
 
-**LitReview AI** is an intelligent, multi-agent system designed to automate the laborious process of conducting academic literature reviews. By leveraging **Google's Agent Development Kit (ADK)** and the **Gemini 2.5 Flash** model, it autonomously searches for research papers, selects the most relevant ones, extracts key findings, and synthesizes a professional, citation-backed literature review.
+This manual process is slow, prone to bias, and often results in important papers being missed. **LitReview AI** aims to solve this by automating the entire pipeline—from discovery to the final written report—reducing days of work into minutes.
 
-### The Problem
-Conducting a literature review is time-consuming. Researchers must:
-1.  Search multiple databases (ArXiv, Google Scholar, etc.).
-2.  Filter through hundreds of abstracts to find relevant papers.
-3.  Read and extract methodology and findings.
-4.  Synthesize this information into a coherent narrative.
-5.  Format citations correctly.
+### Why agents?
+A single Large Language Model (LLM) prompt (e.g., "Write a literature review on X") often fails because:
+*   **Hallucination**: It may invent papers or citations.
+*   **Context Window**: It can't browse the live web or access up-to-date ArXiv papers effectively in one go.
+*   **Lack of Structure**: It struggles to maintain a strict format (e.g., "exactly 5 paragraphs") while simultaneously analyzing complex technical content.
 
-### The Solution
-LitReview AI automates this entire pipeline using a team of specialized AI agents, reducing hours of work to minutes.
+**Agents are the right solution because they allow for specialization:**
+*   A **Search Agent** can focus solely on querying APIs.
+*   A **Selection Agent** acts as a strict filter, ensuring only high-quality papers pass through.
+*   A **Synthesis Agent** can focus on writing, while a separate **Evaluation Agent** critiques the work.
+This "Assembly Line" approach ensures high reliability, accuracy, and adherence to strict formatting rules that a single model call simply cannot match.
 
----
+### What you created
+I built **LitReview AI**, a multi-agent system orchestrated by Google's Agent Development Kit (ADK).
 
-## 2. Architecture
+**The Architecture:**
+The system follows a **Sequential Workflow** with an embedded **Iterative Refinement Loop**:
 
-The system is built on a **Sequential Workflow** with an **Iterative Refinement Loop**. It uses a deterministic chain of agents to ensure quality and consistency.
+1.  **Search Agent 🔍**: Queries **ArXiv** and the **Web** (DuckDuckGo) to gather a broad pool of potential papers.
+2.  **Selection Agent 🎯**: Acts as a "Senior Editor," analyzing the raw list to select the **top 5** most relevant papers, sorting them by publication year (newest first).
+3.  **Extraction Agent 📊**: Deeply analyzes the selected papers to extract specific details: Key Findings, Methodology, and Relevance.
+4.  **Refinement Loop 🔄**:
+    *   **Synthesis Agent ✍️**: Drafts the review using a strict 5-paragraph format with citations.
+    *   **Evaluation Agent ⭐**: Critiques the draft for formatting and citation accuracy.
+    *   *Self-Correction*: If the score is low, the Synthesis Agent rewrites the draft based on the feedback.
 
-### Agent Workflow
-1.  **Search Agent** 📚: Queries ArXiv and the Web (via DuckDuckGo) to gather a broad pool of potential papers.
-2.  **Selection Agent** 🎯: Acts as a senior editor, analyzing the raw search results to select the top 5 most relevant and high-quality papers, sorting them by publication year.
-3.  **Extraction Agent** 📊: detailed analysis of the selected papers, extracting key findings, methodology, and relevance.
-4.  **Refinement Loop** 🔄:
-    *   **Synthesis Agent** ✍️: Drafts the literature review, following a strict 5-paragraph format with citations.
-    *   **Evaluation Agent** ⭐: Critiques the draft, providing a quality score and feedback.
-    *   The loop runs (up to 2 iterations) to allow the Synthesis Agent to self-correct and improve the review based on feedback.
+### Demo
+*(Note: In the Kaggle notebook, you can see the full execution logs showing this process in action.)*
 
-### Technical Stack
-*   **Framework**: Google Agent Development Kit (ADK)
-*   **Model**: Gemini 2.5 Flash Lite
-*   **Tools**: `arxiv` (API wrapper), `duckduckgo-search` (Web search)
-*   **Environment**: Python 3.10+
+**Input:**
+> "Multi-Agent Systems in Healthcare"
 
----
+**Process:**
+1.  **Search**: Found 40 papers (20 ArXiv, 20 Web).
+2.  **Selection**: Narrowed down to the 5 most recent and relevant papers (e.g., "Agent-Based Modeling for Epidemics (2024)", "Federated Learning in Medical AI (2023)").
+3.  **Extraction**: Extracted that Paper A used "Reinforcement Learning" while Paper B focused on "Privacy-Preserving Architecture."
+4.  **Synthesis**: Drafted a review.
+5.  **Evaluation**: "Score: 9/10. Good citations, but ensure the reference list has blank lines." -> *Final Polish*.
 
-## 3. Key Features
+**Output:**
+A perfectly formatted, 5-paragraph literature review with a "References" section, ready to be copy-pasted into a research paper.
 
-*   **Intelligent Search**: Combines academic databases (ArXiv) with general web search for comprehensive coverage.
-*   **Deterministic Selection**: Ensures the "best" papers are chosen based on relevance, not just random selection.
-*   **Structured Output**: Produces a standardized format (Introduction -> 5 Body Paragraphs -> References) that is easy to read.
-*   **Self-Correction**: The unique "Refinement Loop" allows the AI to critique its own work and fix citation or formatting errors before showing the final result.
-*   **Clean UI**: Designed to run as a web chat interface using `adk web` or as a standalone notebook.
+### The Build
+This project was built using:
+*   **Google Agent Development Kit (ADK)**: For defining the `SequentialAgent`, `LoopAgent`, and `LlmAgent` primitives.
+*   **Gemini 2.5 Flash Lite**: The core intelligence powering all agents. It's fast, cost-effective, and has a large context window perfect for analyzing multiple papers.
+*   **ArXiv API**: For fetching academic papers directly.
+*   **DuckDuckGo Search (`ddgs`)**: For broad web searches to catch recent blog posts or industry whitepapers.
+*   **Kaggle Secrets**: For secure API key management.
 
----
+**Key Technical Challenge Solved:**
+Managing the **Refinement Loop**. I used ADK's `LoopAgent` to create a feedback cycle where the writer and reviewer agents talk to each other. This significantly improved the quality of the final output compared to a single-pass generation.
 
-## 4. Implementation Details
-
-### Google ADK Integration
-This project extensively uses Google ADK's core primitives:
-*   **`LlmAgent`**: The building block for all specialized agents.
-*   **`SequentialAgent`**: Orchestrates the linear flow from Search -> Selection -> Extraction.
-*   **`LoopAgent`**: Manages the iterative cycle between Synthesis and Evaluation.
-*   **`InMemoryRunner`**: Executes the agent workflow.
-
-### Challenges & Solutions
-*   **Challenge**: Getting consistent output formats (e.g., ensuring exactly 5 paragraphs).
-    *   **Solution**: Implemented a strict "Evaluation Agent" that checks for formatting rules and rejects drafts that don't comply.
-*   **Challenge**: Handling `asyncio` loops in different environments (Web vs Notebook).
-    *   **Solution**: Used threading for the Web UI to isolate the agent's event loop, while keeping a clean async flow for the Notebook version.
-
----
-
-## 5. Future Improvements
-*   **More Sources**: Integrate PubMed and IEEE Xplore APIs.
-*   **PDF Parsing**: Allow the agent to read full PDF papers instead of just abstracts.
-*   **Dynamic Planning**: Allow the agent to decide how many papers to select based on the query complexity.
-
----
-
-**Created by [Your Name]**
-*Google AI Agent Intensive Capstone 2025*
+### If I had more time, this is what I'd do
+1.  **Full PDF Parsing (RAG)**: Currently, the agents analyze abstracts. With more time, I would implement RAG (Retrieval-Augmented Generation) to download and "read" the full PDF content of the papers for deeper analysis.
+2.  **Dynamic Planning**: Instead of a fixed "Top 5" papers, I'd add a "Planner Agent" that decides *how many* papers are needed based on the complexity of the user's query.
+3.  **Web Interface**: Deploy the `adk web` interface to a public URL (like Hugging Face Spaces) so non-coders can use it easily.
