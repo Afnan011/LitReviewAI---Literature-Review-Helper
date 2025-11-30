@@ -18,38 +18,8 @@
 
 LitReview AI uses a **multi-agent architecture** with a deterministic sequential workflow and an iterative refinement loop.
 
-```mermaid
-graph TD
-    User[User] -->|Query| Root[Root Agent (LitReviewAI)]
-    Root -->|Calls Tool| Tool[execute_literature_review Tool]
-    
-    subgraph "Internal Encapsulated Workflow (Threaded)"
-        Tool --> Search[Search Agent]
-        Search -->|Raw Papers| Select[Selection Agent]
-        Select -->|Top 5 Papers| Extract[Extraction Agent]
-        Extract -->|Enriched Data| LoopStart((Start Loop))
-        
-        subgraph "Iterative Refinement Loop (Max 2)"
-            LoopStart --> Synth[Synthesis Agent]
-            Synth -->|Draft Review| Eval[Evaluation Agent]
-            Eval -->|Critique & Score| Synth
-        end
-        
-        Eval -->|Final Review| Result[Final Output]
-    end
-    
-    Result -->|Text| Tool
-    Tool -->|Response| Root
-    Root -->|Chat Message| User
+![Architecture Diagram](architecture_diagram.png)
 
-    style Root fill:#f9f,stroke:#333,stroke-width:2px
-    style Tool fill:#bbf,stroke:#333,stroke-width:2px
-    style Search fill:#dfd,stroke:#333,stroke-width:1px
-    style Select fill:#dfd,stroke:#333,stroke-width:1px
-    style Extract fill:#dfd,stroke:#333,stroke-width:1px
-    style Synth fill:#ffd,stroke:#333,stroke-width:1px
-    style Eval fill:#ffd,stroke:#333,stroke-width:1px
-```
 
 ### Agent Details
 
